@@ -166,6 +166,8 @@ export const company = {
   // A miss above this amount is material: demotion is recommended even if
   // the task is still above its accuracy threshold.
   materialityThreshold: 10_000,
+  // Close readiness at which the group is ready to close the books.
+  readinessTarget: 95,
 };
 
 export const entities: Entity[] = [

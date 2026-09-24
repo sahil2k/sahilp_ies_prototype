@@ -1,11 +1,13 @@
 "use client"
 
 import { createContext, useContext, useState } from "react"
-import { draftedEntry, taxQuestion } from "@/data/company"
+import { draftedEntry } from "@/data/company"
 
 // What the controller has done on the current screen. Each finance screen
 // mounts its own provider, so every screen starts from the same complete mock
-// state in /data and never depends on what happened on another screen.
+// state in /data. The one exception is the expert handoff decision, which
+// lives in lib/handoff-store.ts because an expert's answer only exists if the
+// controller asked for one.
 
 export type FinanceState = {
   promotion: "pending" | "promoted" | "kept"
@@ -15,7 +17,6 @@ export type FinanceState = {
     amount: number
     edited: boolean
   }
-  handoff: { status: "pending" | "sent" | "declined"; expertId: string }
   resolution: "open" | "closed"
   reversedActivity: string[]
 }
@@ -24,7 +25,6 @@ const initialState: FinanceState = {
   promotion: "pending",
   demotion: "pending",
   entry: { status: "draft", amount: draftedEntry.lines[0].debit, edited: false },
-  handoff: { status: "pending", expertId: taxQuestion.expertId },
   resolution: "open",
   reversedActivity: [],
 }

@@ -13,19 +13,26 @@ import { formatCurrency } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import { DemotionPanel, PromotionPanel } from "./autonomy-panels"
 import { derive } from "./derived"
+import { type HandoffDecision, useHandoff } from "@/lib/handoff-store"
 import { useFinance } from "./finance-state"
 
 // The promotion and demotion prompts have their own panels, so leave them out
 // of the table.
 const queue = exceptions.filter((e) => e.id !== "exc-203" && e.id !== automatedMiss.exceptionId)
 
-// Row status comes from /data only, so the queue looks the same however the
-// user arrives here.
-function rowStatus(e: Exception): { text: string; done?: boolean; href?: string; cta?: string } {
+// Row status comes from /data, plus the shared expert handoff decision (an
+// expert only has the question if the controller sent it).
+function rowStatus(
+  e: Exception,
+  handoff: HandoffDecision["status"]
+): { text: string; done?: boolean; href?: string; cta?: string } {
   if (e.id === "exc-201")
     return { text: "Draft ready for review", href: stepHref("finance", "assisted-fix"), cta: "Review draft" }
-  if (e.id === "exc-202")
+  if (e.id === "exc-202") {
+    if (handoff === "sent")
+      return { text: "With expert", href: stepHref("finance", "resolution"), cta: "See answer" }
     return { text: "Expert recommended", href: stepHref("finance", "expert-handoff"), cta: "Review handoff" }
+  }
   if (e.status === "resolved") return { text: "Resolved automatically", done: true }
   if (e.flag === "error") return { text: "Sent to your IT admin" }
   return { text: "Awaiting review" }
@@ -33,6 +40,7 @@ function rowStatus(e: Exception): { text: string; done?: boolean; href?: string;
 
 export function ExceptionQueue() {
   const { state } = useFinance()
+  const handoff = useHandoff()
   const d = derive(state)
   const pendingDecisions =
     (state.promotion === "pending" ? 1 : 0) + (state.demotion === "pending" ? 1 : 0)
@@ -93,7 +101,7 @@ export function ExceptionQueue() {
             <span className="text-right">Status</span>
           </li>
           {queue.map((e) => {
-            const status = rowStatus(e)
+            const status = rowStatus(e, handoff.status)
             const entity = entityById(e.entityId)!
             const flagged = e.flag !== "none" && !status.done
             return (

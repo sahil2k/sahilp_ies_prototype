@@ -4,6 +4,7 @@ import { ActionBadge } from "@/components/action-badge"
 import { ConfidenceMeter } from "@/components/confidence-meter"
 import { NextStepBar, stepTargets } from "@/components/journey/next-step-bar"
 import { PageHeader } from "@/components/page-header"
+import { ReadinessDial, ReadinessMini } from "@/components/readiness-dial"
 import { Panel } from "@/components/panel"
 import { Button } from "@/components/ui/button"
 import {
@@ -65,26 +66,16 @@ export function CloseDashboard() {
           `${company.closePeriod} close`,
           `${company.groupName}, ${entities.length} entities`,
           `Workday ${company.closeWorkday} of ${company.closeTargetWorkdays}`,
-          `Readiness ${d.readiness}/100`,
+          <ReadinessMini key="readiness" value={d.readiness} label="Readiness" />,
           `${d.openExceptions} open exceptions`,
         ]}
       />
 
       <div className="grid gap-6 lg:grid-cols-[1fr_1.4fr]">
         <Panel title="Close readiness">
-          <div className="flex flex-col gap-5">
-            <div className="flex items-end gap-3">
-              <span className="tabular text-display text-ink">{d.readiness}</span>
-              <span className="pb-1.5 text-body text-ink-muted">out of 100</span>
-            </div>
-            <div
-              className="h-2 overflow-hidden rounded-[2px] bg-rule"
-              role="img"
-              aria-label={`Close readiness ${d.readiness} out of 100`}
-            >
-              <div className="h-full bg-ink" style={{ width: `${d.readiness}%` }} />
-            </div>
-            <dl className="grid grid-cols-2 gap-4 text-body">
+          <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-center">
+            <ReadinessDial value={d.readiness} />
+            <dl className="grid w-full grid-cols-2 gap-4 text-body sm:grid-cols-1 sm:gap-3">
               <div className="flex flex-col gap-0.5">
                 <dt className="text-small text-ink-muted">Close workday</dt>
                 <dd className="tabular text-ink">
@@ -271,10 +262,7 @@ function EntityTable({ d }: { d: ReturnType<typeof derive> }) {
                 <td className="hidden px-4 py-3 text-ink-muted sm:table-cell">{stateName[e.state]}</td>
                 <td className="px-4 py-3">
                   <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                    <span className="hidden h-1.5 w-24 overflow-hidden rounded-[1px] bg-rule sm:block" aria-hidden>
-                      <span className="block h-full bg-ink" style={{ width: `${readiness}%` }} />
-                    </span>
-                    <span className="tabular w-7 text-right text-ink">{readiness}</span>
+                    <ReadinessMini value={readiness} />
                     {low && (
                       <span className="text-small font-semibold text-warning">
                         Needs attention
@@ -294,10 +282,7 @@ function EntityTable({ d }: { d: ReturnType<typeof derive> }) {
             <td className="px-4 py-3 text-ink md:px-6">Group</td>
             <td className="hidden px-4 py-3 sm:table-cell" />
             <td className="px-4 py-3">
-              <span className="flex items-center gap-3">
-                <span className="hidden w-24 sm:block" />
-                <span className="tabular w-7 text-right text-ink">{d.readiness}</span>
-              </span>
+              <ReadinessMini value={d.readiness} />
             </td>
             <td className="tabular px-4 py-3 text-right text-ink md:px-6">{d.openExceptions}</td>
           </tr>

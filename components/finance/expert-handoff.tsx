@@ -18,7 +18,7 @@ import {
 } from "@/data/company"
 import { formatCurrency } from "@/lib/format"
 import { cn } from "@/lib/utils"
-import { useFinance } from "./finance-state"
+import { setHandoff, useHandoff } from "@/lib/handoff-store"
 
 const entity = entityById(taxQuestion.entityId)!
 
@@ -41,15 +41,14 @@ const stages: { title: string; type: ActionType; detail: string }[] = [
 ]
 
 export function ExpertHandoff() {
-  const { state, update } = useFinance()
   const [comparing, setComparing] = useState(false)
-  const { handoff } = state
+  const handoff = useHandoff()
   const sent = handoff.status === "sent"
   const expert = experts.find((e) => e.id === handoff.expertId) ?? experts[0]
   const current = sent ? 2 : 1
 
   const choose = (id: string) =>
-    update((s) => ({ ...s, handoff: { ...s.handoff, expertId: id } }))
+    setHandoff({ expertId: id })
 
   return (
     <div className="flex flex-col gap-8">
@@ -180,7 +179,7 @@ export function ExpertHandoff() {
                   <div className="flex flex-wrap gap-3">
                     <Button
                       onClick={() =>
-                        update((s) => ({ ...s, handoff: { ...s.handoff, status: "sent" } }))
+                        setHandoff({ status: "sent" })
                       }
                       className="max-sm:w-full max-sm:whitespace-normal"
                     >
@@ -190,7 +189,7 @@ export function ExpertHandoff() {
                       <Button
                         variant="secondary"
                         onClick={() =>
-                          update((s) => ({ ...s, handoff: { ...s.handoff, status: "declined" } }))
+                          setHandoff({ status: "declined" })
                         }
                       >
                         Not now
@@ -223,7 +222,7 @@ export function ExpertHandoff() {
                     size="sm"
                     className="h-auto self-start"
                     onClick={() =>
-                      update((s) => ({ ...s, handoff: { ...s.handoff, status: "pending" } }))
+                      setHandoff({ status: "pending" })
                     }
                   >
                     Undo send

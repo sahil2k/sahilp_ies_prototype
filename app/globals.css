@@ -29,6 +29,12 @@
   --color-handoff-tint: var(--handoff-tint);
   --color-handoff-border: var(--handoff-border);
 
+  /* Close readiness (its own accent, so the score stands out on every screen) */
+  --color-readiness: var(--readiness);
+  --color-readiness-strong: var(--readiness-strong);
+  --color-readiness-track: var(--readiness-track);
+  --color-readiness-tint: var(--readiness-tint);
+
   /* Status */
   --color-positive: var(--positive);
   --color-warning: var(--warning);
@@ -120,6 +126,11 @@
   --handoff: #a34a00;
   --handoff-tint: #fdf0e6;
   --handoff-border: #e9b98e;
+
+  --readiness: #1e7a52;
+  --readiness-strong: #155c3d;
+  --readiness-track: #d3e4da;
+  --readiness-tint: #eaf3ee;
 
   --positive: #2b6e4f;
   --warning: #8e1b1b;

@@ -30,7 +30,7 @@ Status: revision 2 (sans-serif only, orange handoff, ink buttons, light mode onl
 
 ## 3. Colour
 
-The ground is a cool, faintly green-grey, a nod to ledger paper, deliberately not the warm cream common in AI-generated interfaces. The interface chrome is deliberately greyscale: buttons, links and navigation are dark ink. Colour appears only when the AI is doing something (the three action badges) or when something is right or wrong (status). That way colour always means something. We avoid bright green entirely so nothing reads as copied Intuit branding.
+The ground is a cool, faintly green-grey, a nod to ledger paper, deliberately not the warm cream common in AI-generated interfaces. The interface chrome is deliberately greyscale: buttons, links and navigation are dark ink. Colour appears only when the AI is doing something (the three action badges), when something is right or wrong (status), or on the close readiness score, the one number a controller checks first (section 8.5). That way colour always means something. We avoid bright green entirely so nothing reads as copied Intuit branding.
 
 The prototype is **light mode only**.
 
@@ -91,7 +91,18 @@ Kept separate from the badge hues so "who did it" and "is it OK" never get confu
 
 Warnings are about *judgement* ("this variance is material, look at it"); errors are about *failure* ("this check did not pass"). Use a warning when a human should look, and an error only when something is actually broken.
 
-### 3.4 Charts
+### 3.4 Close readiness
+
+Close readiness is the headline number of the whole product, so it gets its own accent instead of black text. It is a deeper, more saturated green than `--positive`, in the same "progress is good" family, and is reserved for readiness only.
+
+| Token | Hex | Use |
+|---|---|---|
+| `--readiness` | `#1E7A52` | Filled dial ticks and mini rings (5.3:1 on white) |
+| `--readiness-strong` | `#155C3D` | The score itself (8.0:1 on white) |
+| `--readiness-track` | `#D3E4DA` | Unfilled ticks and ring track (filled vs track 4.0:1) |
+| `--readiness-tint` | `#EAF3EE` | Optional background wash behind a readiness callout |
+
+### 3.5 Charts
 
 Charts use neutral ink shades: `#2A3440`, `#6B7782`, `#AEB8B4`, and `--rule` for gridlines. Badge hues appear in charts only when the series *is* an action type (e.g., "tasks by type: Automated / Assisted / Handoff").
 
@@ -299,11 +310,27 @@ For promotion decisions, show the task's track record, not just today's confiden
 
 ---
 
+### 8.5 Close readiness dial
+
+**Why not a bar.** A thin bar with a black number reads as one more figure on the page, and "78% of a bar" gives no sense of how far there is to go. Completion displays that people glance at daily use a ring (activity rings, setup-guide rings, project progress pies) because the eye reads a closed shape as "done" and an open arc as "not yet", and a ring holds the number in its centre where it can be large. Instrument dials add precision: discrete ticks and a marked target. The dial below combines the two, and uses the same segmented language as the confidence meter (8.2), so the product's two measurement components read as one system.
+
+**Full dial** (close dashboard and resolution panels):
+- A 270° arc of 41 radial ticks, one every 2.5 points (6.75°), open at the bottom. The spacing is chosen so round targets such as 95 fall exactly on a tick. Each tick is 4px wide with round caps. Ticks up to the score fill in `--readiness`; the rest are `--readiness-track`.
+- The ready-to-close target (prototype: 95) is shown as a **zone, not a line**: a soft rounded band, stroked at 30% `--readiness` with round caps, riding just outside the tick tips from the target to 100. A single marker tick read as an unexplained mark, and an early version drawn as a filled wedge produced a hard corner that collided with the ring's last tick; the open, round-capped band avoids both — it has no corner to collide with, and both its ends read the same, so the ring stays symmetric. A small legend below the dial ("— Ready zone, 95+", the dash in the band's colour) names it, rather than a label crowded onto the ring itself.
+- The score sits in the centre at 52px, weight 600, `--readiness-strong`, tabular figures, with "of 100" beneath in `small`. In the gap at the bottom: "17 to target 95", or "Ready to close" once reached.
+- Size 184px. It sits to the left of its supporting figures on desktop and above them on mobile.
+- When the score changes (resolution screen), the number counts up and ticks fill in order, over 600ms. This is the finance area's one orchestrated moment (section 9).
+- Accessible name: "Close readiness 78 out of 100. Ready-to-close zone starts at 95."
+
+**Mini ring** (tables, status lines, the finance hub):
+- An 18px ring (3px stroke, round cap) in `--readiness` on `--readiness-track`, followed by the score in weight 600 `--readiness-strong`. In status lines it reads "Readiness 78".
+- Replaces the thin bars previously used in the entity table, so readiness looks the same everywhere it appears.
+
 ## 9. Motion
 
 - Default: none. No entrance animations, no hover lifts on panels, no shimmer on AI text.
 - Responsive motion only: disclosures expand in 150ms, dialogs fade in 150ms, toasts slide in from the bottom.
-- **One orchestrated moment** per journey, on the resolution screen: the close-readiness score counts up to its new value and the meter segments fill in sequence (600ms total). This is the payoff of the finance journey.
+- **One orchestrated moment** in the finance area, on the resolution screen: the close-readiness score counts up to its new value and the dial ticks fill in sequence (600ms total, see 8.5).
 - Honour `prefers-reduced-motion`: all motion becomes instant.
 
 ---
@@ -343,6 +370,7 @@ The first plan was checked against the defaults an AI-generated finance UI tends
 - **Font:** first reached for Inter, the generic SaaS default. Changed to IBM Plex Sans. A serif for titles was proposed and dropped at review in favour of a single sans-serif family.
 - **Badge hues:** plum (Human handoff) was dropped because its red undertone suggests errors. Handoff moved to burnt orange; Assisted moved from ochre to slate blue so it doesn't sit next to orange.
 - **Primary colour:** navy buttons were replaced with dark ink so blue only ever means Assisted.
+- **Close readiness:** the score was black text over a thin ink bar and didn't stand out. It now has its own green accent and an instrument-style dial with a target mark (3.4, 8.5), with a matching mini ring in tables and status lines.
 - **Warning colour:** added a bold dark red (`#8E1B1B`) instead of amber, so warnings never look like the orange handoff badge. It is separated from the error red by weight, icon and container.
 - **Background:** considered a warm off-white; switched to a cool ledger-paper grey-green so it reads as finance, not editorial.
 - **Structure:** replaced a grid of rounded shadowed cards with table-first layouts, bordered panels, and a radius that varies by hierarchy.
