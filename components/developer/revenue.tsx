@@ -4,7 +4,9 @@ import { Panel } from "@/components/panel"
 import {
   agent,
   currentMonth,
+  lifetimeGross,
   lifetimeRevenue,
+  monthGross,
   monthRevenue,
   nextPayout,
   revenueHistory,
@@ -22,6 +24,7 @@ const dateLabel = (iso: string) =>
 
 export function Revenue() {
   const thisMonthRevenue = monthRevenue(currentMonth)
+  const thisMonthGross = monthGross(currentMonth)
 
   return (
     <div className="flex flex-col gap-8">
@@ -37,9 +40,17 @@ export function Revenue() {
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label="Active installs" value={formatNumber(currentMonth.activeInstalls)} />
-        <Stat label="This month" value={formatCurrency(thisMonthRevenue)} />
-        <Stat label="Lifetime revenue" value={formatCurrency(lifetimeRevenue)} />
-        <Stat label="Your share" value={`${revenueSplit.developerSharePercent}%`} />
+        <Stat
+          label="This month, your share"
+          value={formatCurrency(thisMonthRevenue)}
+          caption={`of ${formatCurrency(thisMonthGross)} total billed`}
+        />
+        <Stat
+          label="Lifetime, your share"
+          value={formatCurrency(lifetimeRevenue)}
+          caption={`of ${formatCurrency(lifetimeGross)} total billed`}
+        />
+        <Stat label="Your split" value={`${revenueSplit.developerSharePercent}%`} />
       </div>
 
       <Panel title="Installs and revenue by month" bodyClassName="p-0 md:p-0">
@@ -49,7 +60,10 @@ export function Revenue() {
               <tr className="border-b border-rule bg-surface-sunken text-left text-small text-ink-muted">
                 <th className="px-4 py-2.5 font-medium md:px-6">Month</th>
                 <th className="px-4 py-2.5 text-right font-medium md:px-6">Active installs</th>
-                <th className="px-4 py-2.5 text-right font-medium md:px-6">Revenue share</th>
+                <th className="px-4 py-2.5 text-right font-medium md:px-6">Total billed</th>
+                <th className="px-4 py-2.5 text-right font-medium md:px-6">
+                  Your share ({revenueSplit.developerSharePercent}%)
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -58,6 +72,9 @@ export function Revenue() {
                   <td className="px-4 py-3 text-ink md:px-6">{monthName(m.month, "long")}</td>
                   <td className="tabular px-4 py-3 text-right text-ink md:px-6">
                     {formatNumber(m.activeInstalls)}
+                  </td>
+                  <td className="tabular px-4 py-3 text-right text-ink-muted md:px-6">
+                    {formatCurrency(monthGross(m))}
                   </td>
                   <td className="tabular px-4 py-3 text-right text-ink md:px-6">
                     {formatCurrency(monthRevenue(m))}
@@ -69,6 +86,9 @@ export function Revenue() {
               <tr className="border-t-[4px] border-double border-rule-strong font-semibold">
                 <td className="px-4 py-3 text-ink md:px-6">Lifetime</td>
                 <td className="px-4 py-3 md:px-6" />
+                <td className="tabular px-4 py-3 text-right text-ink-muted md:px-6">
+                  {formatCurrency(lifetimeGross)}
+                </td>
                 <td className="tabular px-4 py-3 text-right text-ink md:px-6">
                   {formatCurrency(lifetimeRevenue)}
                 </td>
@@ -103,11 +123,12 @@ export function Revenue() {
   )
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value, caption }: { label: string; value: string; caption?: string }) {
   return (
     <div className="flex flex-col gap-1 rounded-panel border border-rule bg-surface p-4">
       <span className="text-small text-ink-muted">{label}</span>
       <span className="tabular text-h2 text-ink">{value}</span>
+      {caption && <span className="tabular text-small text-ink-muted">{caption}</span>}
     </div>
   )
 }

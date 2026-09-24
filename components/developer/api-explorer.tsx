@@ -68,8 +68,8 @@ export function ApiExplorer() {
                   {formatCurrency(
                     cashPositionResponse.entities.find((e) => e.atRisk)!.balance
                   )}{" "}
-                  at Cedarline Cold Storage is below its minimum threshold. An
-                  agent can act on that — see Agent Studio next.
+                  at Cedarline Cold Storage is below its minimum threshold —
+                  the same balance Flowcast&apos;s cash shortfall alert flags.
                 </p>
               )}
             </>
@@ -118,14 +118,14 @@ export function ApiExplorer() {
             </span>
           </div>
           <p className="text-small text-ink-muted">
-            Your customer sees and controls this screen. You never do.
+            Your customer sees and controls this screen.
           </p>
         </div>
       </Panel>
 
       <NextStepBar
         {...stepTargets("developer", "onboarding")}
-        hint="Build an agent that acts on data like this."
+        hint="See what Flowcast earns from customers like this one."
       />
     </div>
   )

@@ -11,11 +11,20 @@ export const isv = {
   founded: 2019,
 }
 
-export type AgentAction = { type: ActionType; text: string }
+export type AgentAction = { id: string; type: ActionType; text: string }
 
+// Flowcast's identity: fixed everywhere, never editable (it's referenced as
+// a proper noun outside the editable screens — hub cards, Revenue's status
+// line — which don't read from the agent-config store).
 export const agent = {
   id: "flowcast",
   name: "Flowcast",
+}
+
+// Flowcast's listing content and declared actions: the editable part. This
+// is the seed/default; lib/agent-store.ts holds the live, editable copy
+// that Agent Studio writes to and Marketplace listing reads from.
+export const agentListingDefaults = {
   tagline: "Multi-entity cash flow forecasting",
   category: "Cash & treasury",
   description:
@@ -23,19 +32,29 @@ export const agent = {
   pricePerMonth: 220,
   actions: [
     {
+      id: "cash-shortfall",
       type: "automated",
       text: "Pulls daily bank balances across every connected entity and flags any entity projected to dip below its minimum cash threshold within 2 weeks.",
     },
     {
+      id: "rolling-forecast",
       type: "assisted",
       text: "Drafts a 13-week rolling cash forecast for each entity and the consolidated group. The controller reviews assumptions before it's shared.",
     },
     {
+      id: "intercompany-handoff",
       type: "handoff",
       text: "When a forecast shows a shortfall that needs an intercompany transfer, hands the numbers to the customer's finance team rather than acting on it.",
     },
   ] satisfies AgentAction[],
 }
+
+export const maxDeclaredActions = 5
+
+// Historical billing uses this fixed price, independent of the live,
+// editable price in the agent-config store — past months don't change
+// retroactively just because today's listing price changes.
+const billedPricePerMonth = agentListingDefaults.pricePerMonth
 
 // A "today vs group-level" comparison for the API explorer. Real figures
 // (partner tiers, one-connection-per-entity limits) come from
@@ -118,7 +137,7 @@ export function trustEligible() {
 }
 
 export const revenueSplit = { platformFeePercent: 30, developerSharePercent: 70 }
-const perInstallMonthly = Math.round(agent.pricePerMonth * (revenueSplit.developerSharePercent / 100))
+const perInstallMonthly = Math.round(billedPricePerMonth * (revenueSplit.developerSharePercent / 100))
 
 export type RevenueMonth = { month: string; activeInstalls: number }
 
@@ -132,12 +151,19 @@ export const revenueHistory: RevenueMonth[] = [
   "2026-09",
 ].map((month, i) => ({ month, activeInstalls: installsByMonth[i] }))
 
+/** The developer's 70% share for one month. */
 export function monthRevenue(m: RevenueMonth) {
   return m.activeInstalls * perInstallMonthly
 }
 
+/** The full amount billed to customers for one month, before the platform fee. */
+export function monthGross(m: RevenueMonth) {
+  return m.activeInstalls * billedPricePerMonth
+}
+
 export const currentMonth = revenueHistory[revenueHistory.length - 1]
 export const lifetimeRevenue = revenueHistory.reduce((sum, m) => sum + monthRevenue(m), 0)
+export const lifetimeGross = revenueHistory.reduce((sum, m) => sum + monthGross(m), 0)
 
 export const nextPayout = {
   amount: monthRevenue(currentMonth),

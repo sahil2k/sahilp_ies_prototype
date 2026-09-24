@@ -1,3 +1,5 @@
+"use client"
+
 import { ShieldCheck, Users } from "lucide-react"
 import { ActionBadge } from "@/components/action-badge"
 import { AgentMark } from "@/components/agent-mark"
@@ -5,6 +7,7 @@ import { NextStepBar, stepTargets } from "@/components/journey/next-step-bar"
 import { PageHeader } from "@/components/page-header"
 import { Panel } from "@/components/panel"
 import { agent, isv, listing, trustEligible } from "@/data/developer"
+import { useAgentConfig } from "@/lib/agent-store"
 import { formatCurrency } from "@/lib/format"
 
 const dateLabel = (iso: string) =>
@@ -15,6 +18,7 @@ const dateLabel = (iso: string) =>
   })
 
 export function MarketplaceListing() {
+  const config = useAgentConfig()
   const eligible = trustEligible()
   const { communityTrust: trust } = listing
 
@@ -27,7 +31,7 @@ export function MarketplaceListing() {
           `Live since ${dateLabel(listing.publishedOn)}`,
           "Reviewed for security",
         ]}
-        description="This is what a customer sees when they find Flowcast inside their IES marketplace."
+        description="This is what a customer sees when they find Flowcast inside their IES marketplace — it reflects whatever you last saved in Agent Studio."
       />
 
       <Panel title="Listing preview">
@@ -38,21 +42,24 @@ export function MarketplaceListing() {
               <div className="flex flex-col gap-0.5">
                 <span className="text-h3 text-ink">{agent.name}</span>
                 <span className="text-small text-ink-muted">
-                  {agent.tagline} · by {isv.name}
+                  {config.tagline} · by {isv.name}
                 </span>
               </div>
             </div>
             <div className="flex flex-col items-end gap-0.5">
-              <span className="tabular text-h3 text-ink">{formatCurrency(agent.pricePerMonth)}</span>
+              <span className="tabular text-h3 text-ink">{formatCurrency(config.pricePerMonth)}</span>
               <span className="text-small text-ink-muted">per month</span>
             </div>
           </div>
-          <p className="max-w-[72ch] text-body text-ink">{agent.description}</p>
-          <span className="flex flex-wrap gap-2">
-            {agent.actions.map((a) => (
-              <ActionBadge key={a.type} type={a.type} />
+          <p className="max-w-[72ch] text-body text-ink">{config.description}</p>
+          <ul className="flex flex-col gap-3 border-t border-rule pt-4">
+            {config.actions.map((a) => (
+              <li key={a.id} className="flex flex-col gap-1.5 sm:flex-row sm:items-start sm:gap-3">
+                <ActionBadge type={a.type} className="shrink-0" />
+                <span className="text-body text-ink">{a.text}</span>
+              </li>
             ))}
-          </span>
+          </ul>
           <div className="flex flex-wrap gap-2 border-t border-rule pt-4">
             <span className="inline-flex items-center gap-1.5 rounded-control border border-positive/40 px-2 py-1 text-small font-medium text-positive">
               <ShieldCheck aria-hidden className="size-3.5" />
@@ -111,7 +118,7 @@ export function MarketplaceListing() {
 
       <NextStepBar
         {...stepTargets("developer", "publishing")}
-        hint="See how Flowcast is earning."
+        hint="See the group-level API Flowcast is built on."
       />
     </div>
   )

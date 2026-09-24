@@ -253,7 +253,13 @@ Labels say exactly what happens: "Approve entry", "Send to expert", "Promote to 
 
 Every screen with numbers shows it, top-right of the page header (and on each standalone panel that has figures). `small` size, `--ink-muted`, with a lucide `info` icon at 14px. Tooltip: "Figures are fictional and for demonstration only."
 
-### 7.5 Audit trail entries
+### 7.5 Editable listing forms
+
+Where a developer edits content a customer will later see (Agent Studio editing Flowcast's marketplace listing), fields use the same input treatment as the rest of the product (e.g. the accrual-amount editor in Assisted fix): 40px inputs, `--rule-strong` border, 4px radius, a `small` `--ink-muted` label above. A form like this is a local **draft**, not a live-saving field — edits commit only on an explicit "Save configuration" action, so leaving the screen without saving discards nothing silently.
+
+**Declared-action type selector:** when a developer chooses which of the three types (Automated / Assisted / Human handoff) an action is, use a 3-option `radiogroup` styled as small versions of the badges themselves (7.1's action-type hues), not a plain dropdown — the unselected two stay a neutral outline, the selected one takes on its full badge colour. This keeps the choice visually identified with the badge it will produce, rather than reading as generic form UI.
+
+### 7.6 Audit trail entries
 
 Each logged AI action is a row with: timestamp, the action in plain language ("Matched 312 bank transactions to invoices"), action badge, confidence, and a quiet "Reverse" button. Reversed entries stay in the log with a strikethrough description and a "Reversed by Priya Nair, 14 Mar" note. Nothing disappears.
 

@@ -78,25 +78,10 @@ export const journeys: Record<JourneyId, Journey> = {
     hubLabel: "Developer home",
     steps: [
       {
-        slug: "discovery",
-        title: "Group-Level API",
-        summary: "One connection for a customer's whole group of entities, not one per entity.",
-        nextLabel: "Open the developer portal",
-        actionTypes: [],
-      },
-      {
-        slug: "onboarding",
-        title: "API explorer",
-        summary:
-          "Try a cross-entity request in the API explorer and open a multi-entity sandbox.",
-        nextLabel: "Try the group-level API",
-        actionTypes: [],
-      },
-      {
         slug: "agent-studio",
         title: "Agent Studio",
         summary:
-          "Build a hosted agent and declare which of its actions are Automated, Assisted or Human handoff.",
+          "Edit a hosted agent's listing and declare which of its actions are Automated, Assisted or Human handoff.",
         nextLabel: "Build an agent",
         actionTypes: ["automated", "assisted", "handoff"],
       },
@@ -105,6 +90,21 @@ export const journeys: Record<JourneyId, Journey> = {
         title: "Marketplace listing",
         summary: "Your marketplace listing, security review and Community trusted status.",
         nextLabel: "Publish the agent",
+        actionTypes: [],
+      },
+      {
+        slug: "discovery",
+        title: "Group-Level API",
+        summary: "One connection for a customer's whole group of entities, not one per entity.",
+        nextLabel: "See the group-level API",
+        actionTypes: [],
+      },
+      {
+        slug: "onboarding",
+        title: "API explorer",
+        summary:
+          "Try a cross-entity request in the API explorer and open a multi-entity sandbox.",
+        nextLabel: "Try the group-level API",
         actionTypes: [],
       },
       {
