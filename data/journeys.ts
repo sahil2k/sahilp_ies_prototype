@@ -79,14 +79,14 @@ export const journeys: Record<JourneyId, Journey> = {
     steps: [
       {
         slug: "discovery",
-        title: "Discovery",
+        title: "Group-Level API",
         summary: "One connection for a customer's whole group of entities, not one per entity.",
         nextLabel: "Open the developer portal",
         actionTypes: [],
       },
       {
         slug: "onboarding",
-        title: "Onboarding",
+        title: "API explorer",
         summary:
           "Try a cross-entity request in the API explorer and open a multi-entity sandbox.",
         nextLabel: "Try the group-level API",
@@ -102,14 +102,14 @@ export const journeys: Record<JourneyId, Journey> = {
       },
       {
         slug: "publishing",
-        title: "Publishing",
+        title: "Marketplace listing",
         summary: "Your marketplace listing, security review and Community trusted status.",
         nextLabel: "Publish the agent",
         actionTypes: [],
       },
       {
         slug: "monetisation",
-        title: "Monetisation",
+        title: "Revenue",
         summary: "Active installs, revenue share and your next payout.",
         nextLabel: "See revenue",
         actionTypes: [],
