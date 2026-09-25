@@ -240,7 +240,7 @@ Close period: September 2026, close workday 2 of a 4-day target (last month took
 
 ### Landing page
 
-Header with the product mark and links to Finance and Developers. Product name; one-line vision ("The AI-native platform for mid-market finance, where the AI shows its work, earns its autonomy, and calls in an expert when it should."); a legend table "Every AI action says who is responsible" (what each badge means, who is accountable, an example from the Cedarline close); a line explaining that tasks start Assisted and earn Automated; a "Get started" section with two entry cards, "I'm a finance leader" (links to `/finance`, "Open Finance") and "I'm a developer" (links to `/developer`, "Open Developer platform"), each listing its own screens. Footer: "Cedarline Group is a fictional company. All figures are illustrative."
+Header with the Concert wordmark and links to Finance and Developers. One-line vision ("The AI-native platform for mid-market finance, where the AI shows its work, earns its autonomy, and calls in an expert when it should."); a legend table "Every AI action says who is responsible" (what each badge means, who is accountable, an example from the Cedarline close); a line explaining that tasks start Assisted and earn Automated; a "Get started" section with two entry cards, "I'm a finance leader" (links to `/finance`, "Open Finance") and "I'm a developer" (links to `/developer`, "Open Developer platform"), each listing its own screens. Footer: "Cedarline Group is a fictional company. All figures are illustrative."
 
 ### Navigation model: hub and spoke
 
@@ -280,8 +280,8 @@ Because screens can be entered out of order, each screen has a short context lin
 
 - **Finance hub (`/finance`):** heading "Finance"; status line "Cedarline Group, 6 entities | September 2026 close, workday 2 of 4 | Readiness 78 (green mini ring) | 15 open exceptions"; five numbered cards (title, one-line description, the action badges that screen features, "Open …" link) plus a sixth, dashed card "Agents in your close" linking to the connecting screen.
 - **Developer hub (`/developer`):** heading "Developer platform"; status line "Sandbox: Cedarline Group, 6 entities | Group-Level API | Hosted agents"; same card layout for the five developer screens plus "Agents in your close".
-- **Screen header:** product mark and workspace name ("Cedarline Group" or "Developer platform"), a "Finance home" / "Developer home" link back to the hub, "Step N of 5: <title>" and a clickable 5-segment track. The hub itself shows no step indicator.
-- **Bottom bar:** "Back to <previous screen>" (screen 1 goes back to the hub), a short status or next-action hint, and one primary button to the next screen. Screen 5's button leads to the connecting screen ("See agents in your close").
+- **Screen header:** product mark and workspace name ("Cedarline Group" or "Developer platform"), a "Finance home" / "Developer home" link back to the hub, "Step N of 4" or "Step N of 5: <title>" and a clickable segment track sized to that journey (4 for finance, 5 for developer). The hub itself shows no step indicator.
+- **Bottom bar:** "Back to <previous screen>" (screen 1 goes back to the hub), a short status or next-action hint, and one primary button to the next screen. The last screen's button leads to the connecting screen ("See agents in your close").
 - **State:** each screen starts from the same complete mock state in `/data`. Actions on a screen (approve, edit, promote, close) update that screen only. The two exceptions are the expert handoff decision and Flowcast's agent config (see the navigation model above), both kept for the browser session via `sessionStorage` (`lib/handoff-store.ts`, `lib/agent-store.ts`).
 
 ### Finance screens (as built)
