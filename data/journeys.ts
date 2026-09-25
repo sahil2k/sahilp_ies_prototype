@@ -55,18 +55,10 @@ export const journeys: Record<JourneyId, Journey> = {
       },
       {
         slug: "expert-handoff",
-        title: "Expert handoff",
+        title: "Multi-state tax review",
         summary:
-          "An Arizona tax question recommended for a multi-state tax CPA, priced before you confirm.",
+          "An Arizona tax question recommended for a multi-state tax CPA: review the price, confirm, and see the answer once it comes back.",
         nextLabel: "Review the tax question",
-        actionTypes: ["handoff"],
-      },
-      {
-        slug: "resolution",
-        title: "Resolution",
-        summary:
-          "The expert's answer, the accrual drafted from it, and what the AI learned for next time.",
-        nextLabel: "See the expert's answer",
         actionTypes: ["handoff", "assisted"],
       },
     ],

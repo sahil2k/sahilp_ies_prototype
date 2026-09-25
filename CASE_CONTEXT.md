@@ -218,7 +218,7 @@ This section describes what the prototype actually shows today. Keep it in sync 
 |---|---|---|
 | Landing page | `/` | Built |
 | Finance hub | `/finance` | Built |
-| Finance screens 1–5 | `/finance/close-dashboard` … `/finance/resolution` | Built |
+| Finance screens 1–4 | `/finance/close-dashboard` … `/finance/expert-handoff` | Built |
 | Developer hub | `/developer` | Built |
 | Developer screens 1–5 | `/developer/discovery` … `/developer/monetisation` | Built |
 | Connecting screen | `/together` | Placeholder: "Agents in your close" with a "No marketplace agents yet" empty state; links to both hubs |
@@ -240,34 +240,33 @@ Close period: September 2026, close workday 2 of a 4-day target (last month took
 
 ### Landing page
 
-Header with the product mark and links to Finance and Developers. Product name; one-line vision ("The AI-native platform for mid-market finance, where the AI shows its work, earns its autonomy, and calls in an expert when it should."); a legend table "Every AI action says who is responsible" (what each badge means, who is accountable, an example from the Cedarline close); a line explaining that tasks start Assisted and earn Automated; a "Get started" section with two entry cards, "I'm a finance leader" (links to `/finance`, "Open Finance") and "I'm a developer" (links to `/developer`, "Open Developer platform"), each listing its 5 screens. Footer: "Cedarline Group is a fictional company. All figures are illustrative."
+Header with the product mark and links to Finance and Developers. Product name; one-line vision ("The AI-native platform for mid-market finance, where the AI shows its work, earns its autonomy, and calls in an expert when it should."); a legend table "Every AI action says who is responsible" (what each badge means, who is accountable, an example from the Cedarline close); a line explaining that tasks start Assisted and earn Automated; a "Get started" section with two entry cards, "I'm a finance leader" (links to `/finance`, "Open Finance") and "I'm a developer" (links to `/developer`, "Open Developer platform"), each listing its own screens. Footer: "Cedarline Group is a fictional company. All figures are illustrative."
 
 ### Navigation model: hub and spoke
 
 **Finance hub (`/finance`)**
-A landing page for the finance persona listing all 5 screens as clickable cards, in any order:
+A landing page for the finance persona listing all 4 screens as clickable cards, in any order:
 1. Close dashboard
 2. Exception queue
 3. Assisted fix
-4. Expert handoff
-5. Resolution
+4. Multi-state tax review
 
-Each card shows a one-line description of what that screen demonstrates, written as real product copy (see copy rules below), not demo narration. A visible step indicator (e.g. "Step 2 of 5") still appears once inside a screen, and each screen has Next/Back controls so a reviewer can walk the full sequence in order if they choose — but every screen must also be enterable directly from the hub, in any order, without depending on state set by a previous screen.
+Each card shows a one-line description of what that screen demonstrates, written as real product copy (see copy rules below), not demo narration. A visible step indicator (e.g. "Step 2 of 4") still appears once inside a screen, and each screen has Next/Back controls so a reviewer can walk the full sequence in order if they choose — but every screen must also be enterable directly from the hub, in any order, without depending on state set by a previous screen.
 
 **Developer hub (`/developer`)**
 Same pattern, for the 5 developer screens:
-1. Discovery
-2. Onboarding
-3. Building (Agent Studio)
-4. Publishing
-5. Monetisation
+1. Agent Studio
+2. Marketplace listing
+3. Group-Level API
+4. API explorer
+5. Revenue
 
 **Self-contained screens**
-Because screens can be entered out of order, each screen has a short context line at the top establishing what state the viewer is looking at — written as real in-product UI copy (e.g. a subheading or status line a real user would see), not a meta-explanation of the demo. Screens do not assume the state left behind by a prior screen — each screen loads its own complete mock state from `/data`. **One exception:** the expert handoff decision (sent / not now / not decided) is shared, because an expert's answer only exists if the controller asked for one. It is read by Expert handoff, Resolution and the Arizona row in the exception queue. With no decision, those screens show the AI's unreviewed draft, and Resolution offers the handoff itself, so it still works when opened directly from the hub. **A second, equivalent exception on the developer side:** Flowcast's listing details and declared actions are shared between Agent Studio (which edits them) and Marketplace listing (which displays them), for the same reason — a customer's marketplace listing should reflect what the developer actually configured, not a screen-local copy. Every other developer screen (Group-Level API, API explorer, Revenue) remains fully self-contained.
+Because screens can be entered out of order, each screen has a short context line at the top establishing what state the viewer is looking at — written as real in-product UI copy (e.g. a subheading or status line a real user would see), not a meta-explanation of the demo. Screens do not assume the state left behind by a prior screen — each screen loads its own complete mock state from `/data`. **One exception:** the expert handoff decision (sent / not now / not decided) is shared, because an expert's answer only exists if the controller asked for one. It is read by the Multi-state tax review screen (which handles all three states — undecided, declined, answered — on one screen, rather than splitting "recommend" and "resolve" across two) and by the Arizona row in the exception queue. **A second, equivalent exception on the developer side:** Flowcast's listing details and declared actions are shared between Agent Studio (which edits them) and Marketplace listing (which displays them), for the same reason — a customer's marketplace listing should reflect what the developer actually configured, not a screen-local copy. Every other developer screen (Group-Level API, API explorer, Revenue) remains fully self-contained.
 
 **Navigation**
 - Every screen has a persistent way back to its hub (not just Back to previous step).
-- Next/Back still moves through the 1–5 sequence for a reviewer walking it in order.
+- Next/Back still moves through the full step sequence for a reviewer walking it in order.
 - The connecting screen (developer's agent inside the finance close) is reachable from both hubs, not just from the end of a forced sequence.
 
 **Copy rules (apply to every screen)**
@@ -294,12 +293,11 @@ Each screen has a heading, an in-product status line, and the "Illustrative data
    - **Promotion:** bank matching at Cedarline Freight LLC, 98.2% over 3 months (3,576 of 3,640), 6-month accuracy record, Promote to Automated / Keep as Assisted.
    - **Demotion:** intercompany eliminations at Cedarline Holdings, Inc. The AI explains in its own voice that it eliminated a $24,500.00 fee a month early; how it was caught (spot check, 4%); what was fixed; "…over your $10,000.00 materiality limit, so I recommend moving it back to Assisted"; September marked "1 miss" in the track record; Move back to Assisted / Keep Automated.
 
-   Below: the "Needs a person" table (7 highest-priority of 15), every row badged with confidence, amount and status; material items flagged in dark red; a failed bank feed flagged as an error. "Review draft" opens Assisted fix and "Review handoff" opens Expert handoff. Next: "Review drafted entry".
+   Below: the "Needs a person" table (7 highest-priority of 15), every row badged with confidence, amount and status; material items flagged in dark red; a failed bank feed flagged as an error. "Review draft" opens Assisted fix and "Review handoff" opens the multi-state tax review. Next: "Review drafted entry".
 3. **Assisted fix.** Heading "Review drafted entry". Status line: "Cedarline Cold Storage LLC | Journal entry JE-0930-017 | Draft, awaiting your approval | Medium confidence, 88%" (the status updates to "Approved and posted" or "Reversed"). Drafted journal entry (accrue $18,400.00 unbilled freight; Dr 6120 Freight in, Cr 2110 Accrued liabilities; auto-reverses Oct 1) beside "Why I drafted this": first-person reasoning that flags the above-contract PO, medium confidence 88% with the 95% promotion mark, sources (3 POs), checks (one failed: PO-5562 billed 4% above contract), comparable history (approved 23 of 24 times). Edit amount (contract-rate total $18,157.69 suggested), Approve and post entry, activity log (AI drafted, you changed, you approved), Reverse entry (counts as a miss for accrual drafting). Next: "Review the tax question".
-4. **Expert handoff.** Heading "Multi-state tax review". Status line: "Cedarline Cold Storage LLC | Arizona tax question | Low confidence, 58% | Expert recommended, not booked" (becomes "Sent to Dana Whitfield"). Three-stage strip: Flagged (Automated) → You decide (Assisted) → Sent with context (Automated). One "Expert recommended" card holds the question, "My draft answer" at low confidence 58%, "Why I'm recommending an expert" (confidence below 70%; multi-state tax is regulated; no precedent in the group), the recommended expert (Dana Whitfield, CPA, 14 years, licensed AZ/CO/TX, 4.9 from 312 questions, $180.00 per question, within 4 business hours) with "Compare 2 experts", the price before commitment ("Illustrative price. Charged once, when you confirm."), and Confirm and send / Not now (the decision carries to Resolution and the exception queue). Beside it: "What the expert receives", the packaged context, with a note that experts are independent CPAs and firms who see only this. Next: "See the expert's answer".
-5. **Resolution.** Heading "Multi-state tax review". What it shows depends on the handoff decision:
-   - **Handoff confirmed:** status line "Cedarline Cold Storage LLC | Arizona tax question | Answered by Dana Whitfield, CPA | Accrual awaiting your approval" (becomes "Closed"). The expert's answer (register for Arizona transaction privilege tax; accrue on the 29 Arizona-delivered invoices; flag future inventory moves), received in 3 hours 12 minutes, and an Assisted accrual drafted from it ($4,871.25; Dr 6410 Sales and use tax expense, Cr 2235 Sales tax payable, Arizona). "Approve accrual and close item" closes the item; the readiness dial counts up from 78 to **83** ("12 to target 95") and Cold Storage goes 66 → 81. "What I learned" then shows, in the AI's voice: inventory held in a new state is now a physical-presence signal flagged for all 6 entities; tax questions still go to an expert because the topic is regulated, but with a stronger draft.
-   - **No handoff (opened directly, or "Not now"):** no expert answer is shown. Status line "… | Not reviewed by an expert | Low confidence, 58%". A dark-red warning: "Unreviewed AI draft. Don't use it for filing or accrual decisions." (plus "You chose not to send this question to an expert." after Not now). "My draft answer" shows the 58% draft, what the AI couldn't determine (where customers took delivery) and that it has not drafted an accrual. An "Ask an expert" card repeats the expert, the price and "Confirm and send to Dana Whitfield", so the handoff can be made from here. The dial stays at 78 and "What I learned" says the AI learns only from reviewed answers.
+4. **Multi-state tax review.** One screen, not two — it used to be split into "Expert handoff" and "Resolution," but both carried the same title and Resolution already duplicated Expert handoff's recommendation card whenever nothing had been sent yet, so the two were folded into one screen with two states, the same "screen that changes shape as you act on it" pattern Assisted fix already uses. A three-stage strip (Flagged → You decide → Sent with context) is always shown, and a "Close readiness" dial sits in the right column throughout.
+   - **Not yet sent (undecided or declined):** status line "Cedarline Cold Storage LLC | Arizona tax question | Low confidence, 58% | Expert recommended, not booked". If declined, a dark-red warning leads: "Unreviewed AI draft. Don't use it for filing or accrual decisions. You chose not to send this question to an expert." The "My draft answer" panel holds the question, the 58% draft, what the AI couldn't determine (where customers took delivery), and "Why I'm recommending an expert" (confidence below 70%; multi-state tax is regulated; no precedent in the group). Below it, "Choose an expert": the recommended expert (Dana Whitfield, CPA, 14 years, licensed AZ/CO/TX, 4.9 from 312 questions, $180.00 per question, within 4 business hours) with "Compare 2 experts", the price before commitment ("Illustrative price. Charged once, when you confirm."), and Confirm and send / Not now. The right column shows "What the expert receives", the packaged context, with a note that experts are independent CPAs and firms who see only this.
+   - **Sent:** status line becomes "… | Answered by Dana Whitfield, CPA | Accrual awaiting your approval" (then "Closed"). The recommendation collapses to one line — "My draft answer" now just recaps the 58% draft above "✓ Sent to Dana Whitfield, CPA · $180.00", with an "Undo send" — and the expert's answer appears in its place (register for Arizona transaction privilege tax; accrue on the 29 Arizona-delivered invoices; flag future inventory moves), received in 3 hours 12 minutes, plus an Assisted accrual drafted from it ($4,871.25; Dr 6410 Sales and use tax expense, Cr 2235 Sales tax payable, Arizona). "Approve accrual and close item" closes the item; the readiness dial counts up from 78 to **83** ("12 to target 95") and Cold Storage goes 66 → 81. The right column swaps to "What I learned," in the AI's voice: inventory held in a new state is now a physical-presence signal flagged for all 6 entities; tax questions still go to an expert because the topic is regulated, but with a stronger draft.
 
    Next: "See agents in your close".
 

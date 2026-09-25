@@ -1,15 +1,18 @@
 "use client"
 
-import { useState } from "react"
-import { Star } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
+import { Check, Star } from "lucide-react"
 import { ActionBadge } from "@/components/action-badge"
 import { ConfidenceMeter } from "@/components/confidence-meter"
 import { NextStepBar, stepTargets } from "@/components/journey/next-step-bar"
 import { PageHeader } from "@/components/page-header"
 import { Panel } from "@/components/panel"
+import { ReadinessDial, ReadinessMini } from "@/components/readiness-dial"
 import { StatusNote } from "@/components/status-note"
 import { Button } from "@/components/ui/button"
 import {
+  closeSummary,
+  entities,
   entityById,
   experts,
   taxQuestion,
@@ -17,10 +20,14 @@ import {
   type Expert,
 } from "@/data/company"
 import { formatCurrency } from "@/lib/format"
-import { cn } from "@/lib/utils"
 import { setHandoff, useHandoff } from "@/lib/handoff-store"
+import { cn } from "@/lib/utils"
+import { derive } from "./derived"
+import { useFinance } from "./finance-state"
 
 const entity = entityById(taxQuestion.entityId)!
+const answer = taxQuestion.expertAnswer
+const before = closeSummary.readinessScore
 
 const stages: { title: string; type: ActionType; detail: string }[] = [
   {
@@ -40,26 +47,69 @@ const stages: { title: string; type: ActionType; detail: string }[] = [
   },
 ]
 
-export function ExpertHandoff() {
-  const [comparing, setComparing] = useState(false)
-  const handoff = useHandoff()
-  const sent = handoff.status === "sent"
-  const expert = experts.find((e) => e.id === handoff.expertId) ?? experts[0]
-  const current = sent ? 2 : 1
+// This screen's one orchestrated moment (docs/design.md 9): when the item
+// closes, the readiness score counts up and the dial fills to its new value.
+function useCountUp(target: number, from: number, animate: boolean) {
+  const [value, setValue] = useState(target)
+  const frame = useRef<number | null>(null)
 
-  const choose = (id: string) =>
-    setHandoff({ expertId: id })
+  useEffect(() => {
+    if (!animate) return
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    if (reduce) return
+    const start = performance.now()
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / 600)
+      const eased = 1 - Math.pow(1 - t, 3)
+      setValue(Math.round(from + (target - from) * eased))
+      if (t < 1) frame.current = requestAnimationFrame(tick)
+    }
+    frame.current = requestAnimationFrame(tick)
+    return () => {
+      if (frame.current) cancelAnimationFrame(frame.current)
+    }
+  }, [target, from, animate])
+
+  return animate ? value : target
+}
+
+export function ExpertHandoff() {
+  const { state, update } = useFinance()
+  const handoff = useHandoff()
+  const d = derive(state)
+  const [comparing, setComparing] = useState(false)
+  const answered = handoff.status === "sent"
+  const closed = answered && state.resolution === "closed"
+  const [justClosed, setJustClosed] = useState(false)
+  const score = useCountUp(closed ? d.readiness : before, before, justClosed)
+  const expert = experts.find((e) => e.id === handoff.expertId) ?? experts[0]
+  const current = answered ? 2 : 1
+
+  const closeItem = () => {
+    setJustClosed(true)
+    update((s) => ({ ...s, resolution: "closed" }))
+  }
+  const choose = (id: string) => setHandoff({ expertId: id })
 
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
         title="Multi-state tax review"
-        status={[
-          entity.name,
-          "Arizona tax question",
-          `Low confidence, ${taxQuestion.confidence}%`,
-          sent ? `Sent to ${expert.name}` : "Expert recommended, not booked",
-        ]}
+        status={
+          answered
+            ? [
+                entity.name,
+                "Arizona tax question",
+                `Answered by ${expert.name}, ${expert.credential}`,
+                closed ? "Closed" : "Accrual awaiting your approval",
+              ]
+            : [
+                entity.name,
+                "Arizona tax question",
+                `Low confidence, ${taxQuestion.confidence}%`,
+                "Expert recommended, not booked",
+              ]
+        }
       />
 
       <ol className="grid gap-3 md:grid-cols-3" aria-label="How a handoff works">
@@ -86,188 +136,371 @@ export function ExpertHandoff() {
       </ol>
 
       <div className="grid items-start gap-6 lg:grid-cols-[1.25fr_1fr]">
-        <Panel title="Expert recommended" aiType="handoff">
-          <div className="flex flex-col gap-5">
-            <div className="flex flex-col gap-1.5">
-              <h3 className="text-small font-medium text-ink-muted">Question</h3>
-              <p className="max-w-[72ch] text-body text-ink">{taxQuestion.question}</p>
-            </div>
-
-            <div className="flex flex-col gap-2 rounded-control bg-surface-sunken p-4">
-              <h3 className="text-small font-medium text-ink-muted">
-                My draft answer
-              </h3>
-              <p className="max-w-[72ch] text-body text-ink">{taxQuestion.aiDraft}</p>
-              <ConfidenceMeter value={taxQuestion.confidence} className="mt-1" />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <h3 className="text-small font-medium text-ink-muted">
-                Why I&apos;m recommending an expert
-              </h3>
-              <ul className="flex flex-col gap-1.5">
-                {taxQuestion.whyHandoff.map((reason) => (
-                  <li key={reason} className="flex gap-2 text-body text-ink">
-                    <span aria-hidden className="mt-[9px] size-1.5 shrink-0 rounded-full bg-handoff" />
-                    {reason}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="flex flex-col gap-4 border-t border-rule pt-5">
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h3 className="text-h3 text-ink">
-                  {sent ? "Sent to" : "Recommended expert"}
-                </h3>
-                {!sent && (
-                  <Button
-                    variant="quiet"
-                    size="sm"
-                    className="h-auto"
-                    aria-expanded={comparing}
-                    onClick={() => setComparing((c) => !c)}
-                  >
-                    {comparing ? "Hide other experts" : `Compare ${experts.length} experts`}
-                  </Button>
-                )}
-              </div>
-
-              {!comparing || sent ? (
-                <ExpertCard expert={expert} />
-              ) : (
-                <fieldset className="flex flex-col gap-3">
-                  <legend className="mb-3 text-small text-ink-muted">
-                    Vetted experts licensed in Arizona, matched to this topic.
-                  </legend>
-                  {experts.map((x) => (
-                    <label
-                      key={x.id}
-                      className={cn(
-                        "flex cursor-pointer gap-3 rounded-control border p-4",
-                        x.id === expert.id
-                          ? "border-ink bg-primary-tint"
-                          : "border-rule hover:bg-row-hover"
-                      )}
-                    >
-                      <input
-                        type="radio"
-                        name="expert"
-                        value={x.id}
-                        checked={x.id === expert.id}
-                        onChange={() => choose(x.id)}
-                        className="mt-1 size-4 accent-ink"
-                      />
-                      <ExpertDetails expert={x} />
-                    </label>
-                  ))}
-                </fieldset>
-              )}
-
-              {!sent ? (
+        <div className="flex flex-col gap-6">
+          {!answered ? (
+            <RecommendationPanels
+              expert={expert}
+              comparing={comparing}
+              onToggleCompare={() => setComparing((c) => !c)}
+              onChoose={choose}
+              declined={handoff.status === "declined"}
+            />
+          ) : (
+            <>
+              <Panel
+                title="My draft answer"
+                aiType="handoff"
+                aside={<ConfidenceMeter value={taxQuestion.confidence} compact />}
+              >
                 <div className="flex flex-col gap-3">
-                  <p className="tabular text-body text-ink">
-                    You pay{" "}
-                    <span className="font-semibold">
-                      {formatCurrency(expert.pricePerQuestion)}
-                    </span>{" "}
-                    for this one question. No retainer or subscription.
-                    <span className="block text-small text-ink-muted">
-                      Illustrative price. Charged once, when you confirm.
-                    </span>
+                  <p className="max-w-[72ch] text-body text-ink-muted">{taxQuestion.aiDraft}</p>
+                  <p className="flex flex-wrap items-center gap-2 text-body text-ink">
+                    <Check aria-hidden className="size-4 shrink-0 text-positive" />
+                    Sent to {expert.name}, {expert.credential} ·{" "}
+                    <span className="tabular">{formatCurrency(expert.pricePerQuestion)}</span>
                   </p>
-                  <div className="flex flex-wrap gap-3">
-                    <Button
-                      onClick={() =>
-                        setHandoff({ status: "sent" })
-                      }
-                      className="max-sm:w-full max-sm:whitespace-normal"
-                    >
-                      Confirm and send to {expert.name}
-                    </Button>
-                    {handoff.status !== "declined" && (
-                      <Button
-                        variant="secondary"
-                        onClick={() =>
-                          setHandoff({ status: "declined" })
-                        }
-                      >
-                        Not now
-                      </Button>
-                    )}
-                  </div>
-                  {handoff.status === "declined" && (
-                    <StatusNote tone="info">
-                      <p>
-                        Kept in your exception queue. The AI&apos;s draft answer is
-                        not used and no one has been booked.
-                      </p>
-                    </StatusNote>
-                  )}
-                </div>
-              ) : (
-                <div className="flex flex-col gap-2">
-                  <StatusNote tone="success">
-                    <p>
-                      <span className="font-medium">
-                        Sent to {expert.name}, {expert.credential}.
-                      </span>{" "}
-                      {formatCurrency(expert.pricePerQuestion)} for this question.
-                      Typical response: {expert.typicalResponse.toLowerCase()}.
-                      You&apos;ll be notified when the answer arrives.
-                    </p>
-                  </StatusNote>
                   <Button
                     variant="quiet"
                     size="sm"
                     className="h-auto self-start"
-                    onClick={() =>
-                      setHandoff({ status: "pending" })
-                    }
+                    onClick={() => setHandoff({ status: "pending" })}
                   >
                     Undo send
                   </Button>
                 </div>
-              )}
-            </div>
-          </div>
-        </Panel>
+              </Panel>
+              <ExpertAnswer expert={expert} closed={closed} onClose={closeItem} />
+            </>
+          )}
+        </div>
 
-        <Panel
-          title="What the expert receives"
-          aside={<span className="text-small text-ink-muted">Packaged automatically</span>}
-        >
-          <div className="flex flex-col gap-4">
-            <dl className="flex flex-col">
-              {taxQuestion.contextPackage.map((item) => (
-                <div
-                  key={item.label}
-                  className="flex flex-col gap-0.5 border-b border-rule py-3 first:pt-0 last:border-b-0"
-                >
-                  <dt className="text-small text-ink-muted">{item.label}</dt>
-                  <dd className="tabular text-body text-ink">{item.detail}</dd>
+        <div className="flex flex-col gap-6">
+          <Panel title="Close readiness">
+            <div className="flex flex-col items-center gap-6 sm:flex-row">
+              <ReadinessDial value={score} />
+              <dl className="grid w-full grid-cols-2 gap-4 text-body sm:grid-cols-1 sm:gap-3">
+                <div className="flex flex-col gap-0.5">
+                  <dt className="text-small text-ink-muted">{entity.shortName}</dt>
+                  <dd>
+                    <ReadinessMini value={closed ? d.entityReadiness(entity.id) : entity.closeReadiness} />
+                    {closed && (
+                      <span className="tabular ml-2 text-small text-ink-muted">
+                        up from {entity.closeReadiness}
+                      </span>
+                    )}
+                  </dd>
                 </div>
-              ))}
-            </dl>
-            <p className="border-t border-rule pt-4 text-small text-ink-muted">
-              Topic: {taxQuestion.category}
-              {taxQuestion.regulated && " (regulated)"}. Experts are independent,
-              credentialed CPAs and advisory firms. They see only what&apos;s listed
-              here, and only for this question.
-            </p>
-          </div>
-        </Panel>
+                <div className="flex flex-col gap-0.5">
+                  <dt className="text-small text-ink-muted">Group</dt>
+                  <dd className="tabular text-ink">
+                    {closed ? `Up from ${before}` : "This item is still open"}
+                  </dd>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <dt className="text-small text-ink-muted">Need a person</dt>
+                  <dd className="tabular text-ink">{d.openExceptions} exceptions</dd>
+                </div>
+              </dl>
+            </div>
+          </Panel>
+
+          {answered ? (
+            <Panel title="What I learned">
+              {closed ? (
+                <div className="flex flex-col gap-4">
+                  <p className="text-body text-ink">{answer.agentLearning}</p>
+                  <dl className="flex flex-col text-body">
+                    <div className="flex flex-col gap-0.5 border-b border-rule pb-3">
+                      <dt className="text-small text-ink-muted">Before this answer</dt>
+                      <dd className="text-ink">
+                        I had no precedent in your group, and scored my own draft at{" "}
+                        {taxQuestion.confidence}%.
+                      </dd>
+                    </div>
+                    <div className="flex flex-col gap-0.5 pt-3">
+                      <dt className="text-small text-ink-muted">From now on</dt>
+                      <dd className="text-ink">
+                        I&apos;ll use this answer as a reference for all {entities.length}{" "}
+                        entities. Tax questions still go to an expert, because the topic
+                        is regulated, but they&apos;ll arrive with a stronger draft.
+                      </dd>
+                    </div>
+                  </dl>
+                  <p className="flex flex-wrap items-center gap-2 text-small text-ink-muted">
+                    Sales and use tax review stays <ActionBadge type="handoff" />
+                  </p>
+                </div>
+              ) : (
+                <p className="text-body text-ink-muted">
+                  When you close this item, I&apos;ll add the expert&apos;s answer to my
+                  training and show what changed here.
+                </p>
+              )}
+            </Panel>
+          ) : (
+            <Panel
+              title="What the expert receives"
+              aside={<span className="text-small text-ink-muted">Packaged automatically</span>}
+            >
+              <div className="flex flex-col gap-4">
+                <dl className="flex flex-col">
+                  {taxQuestion.contextPackage.map((item) => (
+                    <div
+                      key={item.label}
+                      className="flex flex-col gap-0.5 border-b border-rule py-3 first:pt-0 last:border-b-0"
+                    >
+                      <dt className="text-small text-ink-muted">{item.label}</dt>
+                      <dd className="tabular text-body text-ink">{item.detail}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <p className="border-t border-rule pt-4 text-small text-ink-muted">
+                  Topic: {taxQuestion.category}
+                  {taxQuestion.regulated && " (regulated)"}. Experts are independent,
+                  credentialed CPAs and advisory firms. They see only what&apos;s listed
+                  here, and only for this question.
+                </p>
+              </div>
+            </Panel>
+          )}
+        </div>
       </div>
 
       <NextStepBar
         {...stepTargets("finance", "expert-handoff")}
         hint={
-          sent
-            ? `Sent to ${expert.name}. You'll be notified when the answer arrives.`
-            : "Nothing is booked or charged until you confirm."
+          closed
+            ? `Item closed. Close readiness is now ${d.readiness}/100.`
+            : answered
+              ? "Approve the accrual to close this item."
+              : "Nothing is booked or charged until you confirm."
         }
       />
     </div>
+  )
+}
+
+function RecommendationPanels({
+  expert,
+  comparing,
+  onToggleCompare,
+  onChoose,
+  declined,
+}: {
+  expert: Expert
+  comparing: boolean
+  onToggleCompare: () => void
+  onChoose: (id: string) => void
+  declined: boolean
+}) {
+  return (
+    <>
+      {declined && (
+        <StatusNote tone="warning">
+          <p>Unreviewed AI draft. Don&apos;t use it for filing or accrual decisions.</p>
+          <p className="font-normal">You chose not to send this question to an expert.</p>
+        </StatusNote>
+      )}
+
+      <Panel
+        title="My draft answer"
+        aiType="handoff"
+        aside={<ConfidenceMeter value={taxQuestion.confidence} compact />}
+      >
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
+            <h3 className="text-small font-medium text-ink-muted">Question</h3>
+            <p className="max-w-[72ch] text-body text-ink">{taxQuestion.question}</p>
+          </div>
+          <p className="max-w-[72ch] text-body text-ink">{taxQuestion.aiDraft}</p>
+          <ConfidenceMeter value={taxQuestion.confidence} />
+          <dl className="flex flex-col text-body">
+            <div className="flex flex-col gap-0.5 border-b border-rule pb-3">
+              <dt className="text-small text-ink-muted">What I couldn&apos;t determine</dt>
+              <dd className="text-ink">
+                Where customers took delivery of the 29 orders shipped to Arizona
+                addresses. That decides which sales are taxable.
+              </dd>
+            </div>
+            <div className="flex flex-col gap-0.5 pt-3">
+              <dt className="text-small text-ink-muted">Why I&apos;m recommending an expert</dt>
+              <dd className="flex flex-col gap-1.5 text-ink">
+                {taxQuestion.whyHandoff.map((reason) => (
+                  <span key={reason} className="flex gap-2">
+                    <span aria-hidden className="mt-[9px] size-1.5 shrink-0 rounded-full bg-handoff" />
+                    {reason}
+                  </span>
+                ))}
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </Panel>
+
+      <Panel title="Choose an expert">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h3 className="text-small font-medium text-ink-muted">Recommended</h3>
+            <Button
+              variant="quiet"
+              size="sm"
+              className="h-auto"
+              aria-expanded={comparing}
+              onClick={onToggleCompare}
+            >
+              {comparing ? "Hide other experts" : `Compare ${experts.length} experts`}
+            </Button>
+          </div>
+
+          {!comparing ? (
+            <ExpertCard expert={expert} />
+          ) : (
+            <fieldset className="flex flex-col gap-3">
+              <legend className="mb-3 text-small text-ink-muted">
+                Vetted experts licensed in Arizona, matched to this topic.
+              </legend>
+              {experts.map((x) => (
+                <label
+                  key={x.id}
+                  className={cn(
+                    "flex cursor-pointer gap-3 rounded-control border p-4",
+                    x.id === expert.id
+                      ? "border-ink bg-primary-tint"
+                      : "border-rule hover:bg-row-hover"
+                  )}
+                >
+                  <input
+                    type="radio"
+                    name="expert"
+                    value={x.id}
+                    checked={x.id === expert.id}
+                    onChange={() => onChoose(x.id)}
+                    className="mt-1 size-4 accent-ink"
+                  />
+                  <ExpertDetails expert={x} />
+                </label>
+              ))}
+            </fieldset>
+          )}
+
+          <div className="flex flex-col gap-3 border-t border-rule pt-4">
+            <p className="tabular text-body text-ink">
+              You pay <span className="font-semibold">{formatCurrency(expert.pricePerQuestion)}</span>{" "}
+              for this one question. No retainer or subscription.
+              <span className="block text-small text-ink-muted">
+                Illustrative price. Charged once, when you confirm.
+              </span>
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <Button
+                onClick={() => setHandoff({ status: "sent" })}
+                className="max-sm:w-full max-sm:whitespace-normal"
+              >
+                Confirm and send to {expert.name}
+              </Button>
+              {!declined && (
+                <Button variant="secondary" onClick={() => setHandoff({ status: "declined" })}>
+                  Not now
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      </Panel>
+    </>
+  )
+}
+
+function ExpertAnswer({
+  expert,
+  closed,
+  onClose,
+}: {
+  expert: Expert
+  closed: boolean
+  onClose: () => void
+}) {
+  return (
+    <>
+      <Panel
+        title={`Answer from ${expert.name}, ${expert.credential}`}
+        aiType="handoff"
+        aside={
+          <span className="tabular text-small text-ink-muted">
+            Answered in {answer.receivedAfter}
+          </span>
+        }
+      >
+        <div className="flex flex-col gap-4">
+          <p className="max-w-[72ch] text-body text-ink">{answer.summary}</p>
+          <div className="flex flex-col gap-2">
+            <h3 className="text-small font-medium text-ink-muted">Recommended actions</h3>
+            <ul className="flex flex-col gap-1.5">
+              {answer.recommendation.map((r) => (
+                <li key={r} className="flex gap-2 text-body text-ink">
+                  <span aria-hidden className="mt-[9px] size-1.5 shrink-0 rounded-full bg-ink-muted" />
+                  {r}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </Panel>
+
+      <Panel title="Accrual drafted from the answer" aiType="assisted">
+        <div className="flex flex-col gap-4">
+          <p className="text-body text-ink">
+            Accrue Arizona transaction privilege tax on the 29 invoices delivered to
+            Arizona addresses in August and September.
+          </p>
+          <div className="overflow-x-auto rounded-control border border-rule">
+            <table className="w-full text-body">
+              <thead>
+                <tr className="border-b border-rule bg-surface-sunken text-left text-small text-ink-muted">
+                  <th className="px-4 py-2.5 font-medium">Account</th>
+                  <th className="px-4 py-2.5 text-right font-medium">Debit</th>
+                  <th className="px-4 py-2.5 text-right font-medium">Credit</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b border-rule">
+                  <td className="px-4 py-3">
+                    <span className="tabular text-ink-muted">6410</span>{" "}
+                    <span className="text-ink">Sales and use tax expense</span>
+                  </td>
+                  <td className="tabular px-4 py-3 text-right text-ink">
+                    {formatCurrency(answer.accrualAmount)}
+                  </td>
+                  <td className="px-4 py-3 text-right text-ink">–</td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-3">
+                    <span className="tabular text-ink-muted">2235</span>{" "}
+                    <span className="text-ink">Sales tax payable, Arizona</span>
+                  </td>
+                  <td className="px-4 py-3 text-right text-ink">–</td>
+                  <td className="tabular px-4 py-3 text-right text-ink">
+                    {formatCurrency(answer.accrualAmount)}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          {!closed ? (
+            <Button onClick={onClose} className="self-start max-sm:w-full">
+              Approve accrual and close item
+            </Button>
+          ) : (
+            <StatusNote tone="success">
+              <p>
+                <span className="font-medium">Accrual posted and item closed.</span>{" "}
+                Both are in the activity log and can be reversed.
+              </p>
+            </StatusNote>
+          )}
+        </div>
+      </Panel>
+    </>
   )
 }
 

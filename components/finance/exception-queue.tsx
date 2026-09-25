@@ -30,7 +30,7 @@ function rowStatus(
     return { text: "Draft ready for review", href: stepHref("finance", "assisted-fix"), cta: "Review draft" }
   if (e.id === "exc-202") {
     if (handoff === "sent")
-      return { text: "With expert", href: stepHref("finance", "resolution"), cta: "See answer" }
+      return { text: "With expert", href: stepHref("finance", "expert-handoff"), cta: "See answer" }
     return { text: "Expert recommended", href: stepHref("finance", "expert-handoff"), cta: "Review handoff" }
   }
   if (e.status === "resolved") return { text: "Resolved automatically", done: true }
