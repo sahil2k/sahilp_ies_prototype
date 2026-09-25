@@ -1,4 +1,4 @@
-# Design brief: [PRODUCT NAME]
+# Design brief: Concert
 
 Status: revision 2 (sans-serif only, orange handoff, ink buttons, light mode only). No screens built yet. Once approved, this file governs every visual decision in the prototype (see `CLAUDE.md`).
 
@@ -188,7 +188,7 @@ Desktop (≥1024px)
 
 Mobile (390px)
 ┌───────────────────────────┐
-│ ☰ [PRODUCT NAME]  Entity ▾│
+│ ☰ Concert  Entity ▾│
 │ Step 2 of 5 ▬▬▭▭▭          │
 │ Exception queue            │
 │ Illustrative data          │
@@ -354,7 +354,7 @@ For promotion decisions, show the task's track record, not just today's confiden
 
 ## 11. Brand and product mark
 
-- Wordmark: `[PRODUCT NAME]` set in IBM Plex Sans 600, `--ink`, with a simple square mark in `--ink` containing a check-and-rule glyph (a tick above a double underline, echoing the totals rule). Easy to swap once the name is chosen.
+- Wordmark: `Concert` set in IBM Plex Sans 600, `--ink`, with a simple square mark in `--ink` containing a check-and-rule glyph (a tick above a double underline, echoing the totals rule).
 - No Intuit logos, no QuickBooks green, no copied Intuit type or illustration style.
 
 ---

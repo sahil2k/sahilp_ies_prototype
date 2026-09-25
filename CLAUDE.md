@@ -4,7 +4,7 @@
 
 A clickable prototype for an Intuit PM case study. Intuit Enterprise Suite (IES) is evolving from a mid-market finance suite into an AI-native business platform.
 
-**Product name:** `[PRODUCT NAME]` — placeholder for now. Always use this exact string so it can be found and replaced later.
+**Product name:** Concert.
 
 **Source of truth:** `CASE_CONTEXT.md` has the full context (problem statements, ideal states, journey steps, research figures). Read it before building any new screen. Where it goes into more detail than this file, follow it.
 

@@ -1,10 +1,10 @@
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 
-export const PRODUCT_NAME = "[PRODUCT NAME]"
+export const PRODUCT_NAME = "Concert"
 
-// Placeholder mark: a tick above an accountant's double rule, the sign that
-// something has been checked and totalled. Swap once the name is decided.
+// A tick above an accountant's double rule: the sign that something has
+// been checked and totalled.
 export function ProductMark({ className }: { className?: string }) {
   return (
     <Link

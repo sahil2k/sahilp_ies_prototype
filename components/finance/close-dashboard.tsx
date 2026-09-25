@@ -14,11 +14,32 @@ import {
   entities,
   entityById,
   type ActionType,
+  type ActivityEntry,
 } from "@/data/company"
-import { formatNumber, formatPercent } from "@/lib/format"
+import { agent, agentTestRun, cedarlineInstall, isv } from "@/data/developer"
+import { formatCurrency, formatNumber, formatPercent } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import { derive } from "./derived"
 import { useFinance } from "./finance-state"
+
+// Flowcast's own flag, shown in the same activity log as Concert's built-in
+// actions, in chronological order — the "one trust pattern" that /together
+// also shows, made visible in the finance persona's actual home screen, not
+// just on the capstone page. `source` marks it as third-party; native rows
+// leave it undefined.
+const flowcastEntry: ActivityEntry & { source?: string } = {
+  id: "flowcast-cash-shortfall",
+  timestamp: cedarlineInstall.actionTimestamp,
+  entityId: agentTestRun.entityId,
+  description: `Flagged ${agentTestRun.entityName}: balance ${formatCurrency(agentTestRun.balance)} is below its ${formatCurrency(agentTestRun.minimumThreshold)} minimum, projected in ${agentTestRun.daysToShortfall} days.`,
+  actionType: "automated",
+  confidence: null,
+  reversible: true,
+  source: `${agent.name}, from ${isv.name}`,
+}
+
+const fullActivityLog: (ActivityEntry & { source?: string })[] = [...activityLog]
+fullActivityLog.splice(2, 0, flowcastEntry) // between Oct 2 7:52 AM and Oct 1 5:30 PM
 
 const actionRows: { type: ActionType; count: number; note: string }[] = [
   {
@@ -153,7 +174,7 @@ export function CloseDashboard() {
             <span>Confidence</span>
             <span className="text-right">Log</span>
           </li>
-          {activityLog.map((a) => {
+          {fullActivityLog.map((a) => {
             const reversedByYou = state.reversedActivity.includes(a.id)
             const reversed = !!a.reversedBy || reversedByYou
             const entity = a.entityId === "group" ? null : entityById(a.entityId)
@@ -170,7 +191,7 @@ export function CloseDashboard() {
                     {a.description}
                   </span>
                   <span className="text-small text-ink-muted">
-                    {entity ? entity.name.replace(/\.$/, "") : "All entities"}
+                    {a.source ?? (entity ? entity.name.replace(/\.$/, "") : "All entities")}
                     {reversed &&
                       `. Reversed by ${reversedByYou ? "you, just now" : a.reversedBy}`}
                   </span>

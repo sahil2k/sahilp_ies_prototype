@@ -17,7 +17,7 @@ Read this file before building anything. It is the source of truth for what we a
 - The human + AI operating model: what is autonomous, what is assisted, when experts step in
 - The developer journey: discovery → onboarding → building → publishing → monetisation
 
-**Product name:** `[PRODUCT NAME]` — not decided yet. Use a placeholder that is easy to find-and-replace.
+**Product name:** Concert.
 
 ---
 
@@ -221,7 +221,7 @@ This section describes what the prototype actually shows today. Keep it in sync 
 | Finance screens 1–4 | `/finance/close-dashboard` … `/finance/expert-handoff` | Built |
 | Developer hub | `/developer` | Built |
 | Developer screens 1–5 | `/developer/discovery` … `/developer/monetisation` | Built |
-| Connecting screen | `/together` | Placeholder: "Agents in your close" with a "No marketplace agents yet" empty state; links to both hubs |
+| Connecting screen | `/together` | Built |
 
 ### Demo company (fictional, all figures illustrative)
 
@@ -288,7 +288,7 @@ Because screens can be entered out of order, each screen has a short context lin
 
 Each screen has a heading, an in-product status line, and the "Illustrative data" label. The AI's explanations are written in its own voice ("Why I drafted this", "What I learned").
 
-1. **Close dashboard.** Status line: "September 2026 close | Cedarline Group, 6 entities | Workday 2 of 4 | Readiness 78 | 15 open exceptions", with readiness shown as a green mini ring. Close readiness shown as the readiness dial (78 in large green type inside a 270° ring of ticks, a soft rounded "ready zone" band and legend from 95 to 100, "17 to target 95") beside context (workday, last month's close of 9 workdays, exceptions, intercompany pairs eliminated 35 of 38); "What the AI did this month" by badge (4,902 / 461 / 8); readiness by entity table with a green mini ring per entity and for the group total (Cold Storage flagged "Needs attention"); recent AI activity log where reversible actions have a Reverse button (reversed actions are struck through, including an intercompany elimination reversed by a spot check). Next: "Review exceptions".
+1. **Close dashboard.** Status line: "September 2026 close | Cedarline Group, 6 entities | Workday 2 of 4 | Readiness 78 | 15 open exceptions", with readiness shown as a green mini ring. Close readiness shown as the readiness dial (78 in large green type inside a 270° ring of ticks, a soft rounded "ready zone" band and legend from 95 to 100, "17 to target 95") beside context (workday, last month's close of 9 workdays, exceptions, intercompany pairs eliminated 35 of 38); "What the AI did this month" by badge (4,902 / 461 / 8); readiness by entity table with a green mini ring per entity and for the group total (Cold Storage flagged "Needs attention"); recent AI activity log where reversible actions have a Reverse button (reversed actions are struck through, including an intercompany elimination reversed by a spot check), and — in its correct chronological position alongside Concert's own entries — a Flowcast-sourced row (a marketplace agent, captioned "Flowcast, from Ridgeline Software" instead of an entity name), reversible the same way as any native row; see the connecting screen below. Next: "Review exceptions".
 2. **Exception queue.** Status line: "September 2026 close | 15 open exceptions | 2 autonomy decisions waiting". An "Earned autonomy" section ("Tasks move between Assisted and Automated based on their accuracy at each entity. Nothing changes until you approve it.") with two panels:
    - **Promotion:** bank matching at Cedarline Freight LLC, 98.2% over 3 months (3,576 of 3,640), 6-month accuracy record, Promote to Automated / Keep as Assisted.
    - **Demotion:** intercompany eliminations at Cedarline Holdings, Inc. The AI explains in its own voice that it eliminated a $24,500.00 fee a month early; how it was caught (spot check, 4%); what was fixed; "…over your $10,000.00 materiality limit, so I recommend moving it back to Assisted"; September marked "1 miss" in the track record; Move back to Assisted / Keep Automated.
@@ -316,7 +316,13 @@ The developer's sandbox customer is Cedarline Group, the same 6 entities as the 
 4. **API explorer.** Status line: "Sandbox: Cedarline Group | 6 entities | Always connected". The developer's sandbox is always fully connected — no consent step, matching D2's "no OAuth redirect pain." A "Your sandbox" panel lists the 6 entities as fixed, read-only context (not a control). "Try a request" sends `GET /v1/groups/cedarline-group/cash-position` and returns one JSON response across all 6 entities, the consolidated total, and pending intercompany transfers, including Cedarline Cold Storage LLC's balance below its minimum threshold — the same balance Flowcast's cash shortfall alert flags. A separate "What your customer sees" panel shows the per-entity consent screen from D1's token model as a disabled, greyed-out preview only, captioned "Your customer sees and controls this screen." — it is never something the developer can click. Next: "See revenue".
 5. **Revenue.** Status line: "Flowcast | 168 active installs | Next payout $25,872.00 on October 15, 2026". Four stat tiles — active installs, this month's revenue share (with the total billed to customers alongside it), lifetime revenue share (with lifetime total billed), and the developer's split (70%) — plus a 6-month installs-and-revenue table (April through September 2026, growing from 6 to 168 active installs) with both **total billed** and **your share (70%)** columns, and a "Next payout" panel. Revenue is calculated per active install, split 70% developer / 30% platform fee (both illustrative); the historical billed price is fixed at $220.00/month regardless of whatever price is currently saved in Agent Studio, since past months don't change retroactively. Next: "See agents in your close".
 
-**Connecting screen (reachable from both hubs):** "Agents in your close" currently shows a "No marketplace agents yet" empty state — a customer's close before any marketplace agent is installed. Building out Flowcast running live inside the finance close is still open (see section 9).
+**Connecting screen (reachable from both hubs).** "Agents in your close." Reachable from either hub, so it's written as an observer's caption rather than assuming which persona arrived — "Here's what shows up in Cedarline Group's close once Flowcast is installed," the same pattern Marketplace listing already uses ("This is what a customer sees...") rather than assuming the reader is either the controller or the developer. In-universe, this is really the finance controller's screen; a developer would never see inside a real customer's close, so their path here is framed as a preview of that screen, not their own.
+- **Installed agent:** Flowcast's profile — icon, tagline, "by Ridgeline Software," install date (September 14, 2026), Reviewed for security, and either Community trusted or a ratings-so-far count — read live from the same agent-config store Agent Studio writes to, with a link to the full Marketplace listing.
+- **Recent AI activity:** one real logged action, styled identically to the Close dashboard's own activity table — Flowcast flagged Cedarline Cold Storage LLC's balance below its minimum, labelled Automated, captioned "By Flowcast" instead of an entity name.
+- **What else Flowcast does here:** its other declared actions (Assisted, Human handoff), read live from the store.
+- **How marketplace agents are labelled:** states the trust-pattern message plainly — every marketplace agent's actions carry the same three labels as Concert's own, whoever built it.
+- Cedarline Group is one of Flowcast's 168 active installs (the same figure shown on Revenue), not a separate invented example.
+- **Bidirectional:** the same Flowcast flag also appears in the Close dashboard's own "Recent AI activity" table (see below), in its correct chronological position, reversible through the same mechanism as any native row — the connection isn't only visible on this one capstone screen.
 
 ---
 
@@ -359,6 +365,4 @@ Use these only where a screen needs a real-world reference point, and keep the s
 
 ## 9. Open items
 
-- Product name (placeholder `[PRODUCT NAME]`).
 - Whether Intuit's announced customer-built agents (Anthropic partnership, Feb 2026) are live — treat as "announced", not "live", in any copy.
-- The connecting screen (`/together`) is still just an empty state. Building it out — Flowcast running live inside the Cedarline Group close, its actions carrying the same three badges as built-in agents — is the one piece left before both journeys are fully built end to end.

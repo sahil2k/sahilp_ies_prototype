@@ -120,6 +120,14 @@ export const agentTestRun = {
   daysToShortfall: 9,
 }
 
+// Cedarline Group is one of Flowcast's real installs (see revenueHistory),
+// not a separate made-up example. Shown on the connecting screen and in the
+// finance close's own activity log.
+export const cedarlineInstall = {
+  installedOn: "2026-09-14",
+  actionTimestamp: "2026-10-01T22:40:00",
+}
+
 export const listing = {
   publishedOn: "2026-04-02",
   securityReview: { passed: true, reviewedOn: "2026-03-28" },

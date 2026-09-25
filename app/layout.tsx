@@ -15,7 +15,7 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "[PRODUCT NAME]",
+  title: "Concert",
   description:
     "The AI-native platform for mid-market finance teams and the developers who build for them.",
 };
