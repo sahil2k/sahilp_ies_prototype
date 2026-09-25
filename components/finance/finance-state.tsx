@@ -1,13 +1,14 @@
 "use client"
 
-import { createContext, useContext, useState } from "react"
+import { useSyncExternalStore } from "react"
 import { draftedEntry } from "@/data/company"
 
-// What the controller has done on the current screen. Each finance screen
-// mounts its own provider, so every screen starts from the same complete mock
-// state in /data. The one exception is the expert handoff decision, which
-// lives in lib/handoff-store.ts because an expert's answer only exists if the
-// controller asked for one.
+// What the controller has done in the finance journey this session. Kept in
+// sessionStorage — the same pattern as lib/handoff-store.ts and
+// lib/agent-store.ts — so it survives navigation between screens and a
+// refresh: approving the drafted entry or closing the tax item stays true
+// when you come back, and the close-readiness figures it feeds (via
+// derived.ts) update on every screen, not just the one where you acted.
 
 export type FinanceState = {
   promotion: "pending" | "promoted" | "kept"
@@ -29,24 +30,40 @@ const initialState: FinanceState = {
   reversedActivity: [],
 }
 
-type Ctx = {
-  state: FinanceState
-  update: (patch: (s: FinanceState) => FinanceState) => void
+const KEY = "finance-state"
+const listeners = new Set<() => void>()
+let current: FinanceState | null = null
+
+function read(): FinanceState {
+  if (current) return current
+  try {
+    const raw = sessionStorage.getItem(KEY)
+    current = raw ? { ...initialState, ...JSON.parse(raw) } : initialState
+  } catch {
+    current = initialState
+  }
+  return current!
 }
 
-const FinanceContext = createContext<Ctx | null>(null)
+function subscribe(listener: () => void) {
+  listeners.add(listener)
+  return () => {
+    listeners.delete(listener)
+  }
+}
 
-export function FinanceStateProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<FinanceState>(initialState)
-  return (
-    <FinanceContext.Provider value={{ state, update: setState }}>
-      {children}
-    </FinanceContext.Provider>
-  )
+function write(next: FinanceState) {
+  current = next
+  try {
+    sessionStorage.setItem(KEY, JSON.stringify(current))
+  } catch {
+    // Storage unavailable: the change still holds for this page view.
+  }
+  listeners.forEach((l) => l())
 }
 
 export function useFinance() {
-  const ctx = useContext(FinanceContext)
-  if (!ctx) throw new Error("useFinance must be used inside FinanceStateProvider")
-  return ctx
+  const state = useSyncExternalStore(subscribe, read, () => initialState)
+  const update = (patch: (s: FinanceState) => FinanceState) => write(patch(read()))
+  return { state, update }
 }
